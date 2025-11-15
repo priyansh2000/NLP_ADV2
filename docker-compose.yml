@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+  # 1. Your FastAPI Backend Service
+  backend:
+    build: .
+    container_name: rag_backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      - chroma
+    volumes:
+      - ./app:/app/app
+    # Add the environment variable for your key
+    environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+  
+  # 2. The Vector Database Service
+  chroma:
+    image: chromadb/chroma
+    container_name: rag_chroma
+    ports:
+      - "8001:8000"
+    volumes:
+      - chroma_data:/data
+
+# Define the persistent volumes
+volumes:
+  chroma_data:

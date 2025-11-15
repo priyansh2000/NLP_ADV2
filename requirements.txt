@@ -1,0 +1,17 @@
+# Phase 1: ETL
+pdfplumber
+pandas
+regex
+ipykernel
+
+# Phase 2: Indexing
+chromadb
+sentence-transformers
+
+# Phase 3: FastAPI
+fastapi
+uvicorn[standard]
+
+# Phase 4: Ollama & LangChain
+langchain-community
+langchain-ollama
