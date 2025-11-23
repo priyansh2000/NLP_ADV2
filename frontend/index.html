@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Julius Caesar RAG System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .chat-container {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            min-height: 300px;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            text-align: right;
+        }
+
+        .message-content {
+            display: inline-block;
+            padding: 12px 18px;
+            border-radius: 18px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-content {
+            background: #667eea;
+            color: white;
+        }
+
+        .message.assistant .message-content {
+            background: white;
+            color: #333;
+            border: 2px solid #e0e0e0;
+        }
+
+        .sources {
+            margin-top: 10px;
+            padding: 10px;
+            background: #fff3cd;
+            border-radius: 10px;
+            font-size: 0.9em;
+            color: #856404;
+        }
+
+        .sources-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .source-item {
+            margin: 5px 0;
+            padding: 5px;
+            background: white;
+            border-radius: 5px;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        #questionInput {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        #questionInput:focus {
+            border-color: #667eea;
+        }
+
+        #askButton {
+            padding: 15px 30px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        #askButton:hover {
+            background: #5568d3;
+        }
+
+        #askButton:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 20px;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .sample-questions {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e7f3ff;
+            border-radius: 10px;
+        }
+
+        .sample-questions h3 {
+            color: #0066cc;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .sample-question {
+            display: inline-block;
+            margin: 5px;
+            padding: 8px 15px;
+            background: white;
+            border: 1px solid #0066cc;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s;
+        }
+
+        .sample-question:hover {
+            background: #0066cc;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Julius Caesar RAG</h1>
+        <p class="subtitle">Ask questions about Shakespeare's Julius Caesar</p>
+
+        <div class="chat-container" id="chatContainer">
+            <div class="message assistant">
+                <div class="message-content">
+                    Hello! I'm your Julius Caesar expert. Ask me anything about the play!
+                </div>
+            </div>
+        </div>
+
+        <div class="input-container">
+            <input 
+                type="text" 
+                id="questionInput" 
+                placeholder="Ask a question about Julius Caesar..."
+                onkeypress="if(event.key === 'Enter') askQuestion()"
+            >
+            <button id="askButton" onclick="askQuestion()">Ask</button>
+        </div>
+
+        <div class="sample-questions">
+            <h3>Try these questions:</h3>
+            <span class="sample-question" onclick="askSample('Who is Brutus?')">Who is Brutus?</span>
+            <span class="sample-question" onclick="askSample('What does the Soothsayer say to Caesar?')">What does the Soothsayer say?</span>
+            <span class="sample-question" onclick="askSample('Why does Brutus kill Caesar?')">Why does Brutus kill Caesar?</span>
+            <span class="sample-question" onclick="askSample('What happens at Caesar\\'s funeral?')">What happens at the funeral?</span>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000/query';
+
+        function addMessage(content, isUser, sources = null) {
+            const chatContainer = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'assistant'}`;
+            
+            let html = `<div class="message-content">${content}</div>`;
+            
+            if (sources && sources.length > 0) {
+                html += '<div class="sources">';
+                html += '<div class="sources-title">Sources:</div>';
+                sources.forEach((source, index) => {
+                    const preview = source.chunk.substring(0, 100).replace(/\n/g, ' ');
+                    html += `<div class="source-item">${index + 1}. ${source.metadata.source}: ${preview}...</div>`;
+                });
+                html += '</div>';
+            }
+            
+            messageDiv.innerHTML = html;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function showLoading() {
+            const chatContainer = document.getElementById('chatContainer');
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'loading';
+            loadingDiv.id = 'loading';
+            loadingDiv.textContent = 'Thinking...';
+            chatContainer.appendChild(loadingDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function hideLoading() {
+            const loading = document.getElementById('loading');
+            if (loading) {
+                loading.remove();
+            }
+        }
+
+        async function askQuestion() {
+            const input = document.getElementById('questionInput');
+            const button = document.getElementById('askButton');
+            const question = input.value.trim();
+
+            if (!question) return;
+
+            // Disable input
+            input.disabled = true;
+            button.disabled = true;
+
+            // Add user message
+            addMessage(question, true);
+            input.value = '';
+
+            // Show loading
+            showLoading();
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query: question })
+                });
+
+                hideLoading();
+
+                if (!response.ok) {
+                    throw new Error('Failed to get response from server');
+                }
+
+                const data = await response.json();
+                addMessage(data.answer, false, data.sources);
+
+            } catch (error) {
+                hideLoading();
+                addMessage('Sorry, I encountered an error. Please make sure the API server is running.', false);
+                console.error('Error:', error);
+            }
+
+            // Re-enable input
+            input.disabled = false;
+            button.disabled = false;
+            input.focus();
+        }
+
+        function askSample(question) {
+            document.getElementById('questionInput').value = question;
+            askQuestion();
+        }
+
+        // Focus input on load
+        window.onload = function() {
+            document.getElementById('questionInput').focus();
+        };
+    </script>
+</body>
+</html>
+

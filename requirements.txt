@@ -15,3 +15,6 @@ uvicorn[standard]
 # Phase 4: Ollama & LangChain
 langchain-community
 langchain-ollama
+
+# Phase 5: Google Gemini
+google-generativeai
